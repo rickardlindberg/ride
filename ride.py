@@ -51,15 +51,23 @@ class TreeView:
             else:
                 print(item.name)
 
-    def paint(self, context, width, height, x, y):
+    def paint(self, context, width, height, x, y, debug=False):
         context.set_font_size(17)
-        _, _, _, font_height, _ = context.font_extents()
+        ascent, descent, font_height, _, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
         scale = min(1, height/sum(item.weight*font_height for item in self.items))
         context.set_font_size(17*scale)
-        y = 10
+        y = 0
         for item in self.items:
-            context.move_to(10*item.indent, y)
+            if debug:
+                context.rectangle(
+                    10*item.indent,
+                    y,
+                    300,
+                    font_height*scale
+                )
+                context.stroke()
+            context.move_to(10*item.indent, y+ascent*scale)
             context.text_path(item.name)
             context.fill()
             y += font_height*scale
@@ -164,7 +172,8 @@ class Canvas(Gtk.DrawingArea):
             widget.get_allocated_width(),
             widget.get_allocated_height(),
             self.x,
-            self.y
+            self.y,
+            debug=os.environ.get("DEBUG", False)
         )
 
     def on_motion_notify_event(self, widget, event):
