@@ -23,7 +23,7 @@ class TreeView:
 
     >>> surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
     >>> context = cairo.Context(surface)
-    >>> tree_view.paint(context)
+    >>> tree_view.paint(context, 10, 10)
     """
 
     def __init__(self):
@@ -50,16 +50,18 @@ class TreeView:
             else:
                 print(name)
 
-    def paint(self, context):
-        extents = context.font_extents()
-        context.set_source_rgb(1, 0, 0)
+    def paint(self, context, width, height):
         context.set_font_size(17)
+        _, _, _, font_height, _ = context.font_extents()
+        context.set_source_rgb(1, 0, 0)
+        scale = min(1, height/(len(self.items)*font_height))
+        context.scale(scale, scale)
         y = 10
         for indent, name in self.items:
-            context.move_to(10*indent, y)
+            context.move_to(10*indent*1/scale, y)
             context.text_path(name)
             context.fill()
-            y += extents[3] + 2
+            y += font_height
 
 class Directory:
 
@@ -146,7 +148,11 @@ class Canvas(Gtk.DrawingArea):
     def on_draw(self, widget, context):
         view = TreeView()
         Directory.create().populate_tree_view(view)
-        view.paint(context)
+        view.paint(
+            context,
+            widget.get_allocated_width(),
+            widget.get_allocated_height()
+        )
 
     def on_motion_notify_event(self, widget, event):
         print(event)
