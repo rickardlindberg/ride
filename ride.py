@@ -41,27 +41,34 @@ class TreeView:
         self.indent -= 1
 
     def add(self, name):
-        self.items.append((self.indent, name))
+        self.items.append(TreeItem(self.indent, name))
 
     def render(self):
-        for indent, name in self.items:
-            if indent > 0:
-                print(f"{'--'*indent} {name}")
+        for item in self.items:
+            if item.indent > 0:
+                print(f"{'--'*item.indent} {item.name}")
             else:
-                print(name)
+                print(item.name)
 
     def paint(self, context, width, height, x, y):
         context.set_font_size(17)
         _, _, _, font_height, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
-        scale = min(1, height/(len(self.items)*font_height))
+        scale = min(1, height/sum(item.weight*font_height for item in self.items))
         context.set_font_size(17*scale)
         y = 10
-        for indent, name in self.items:
-            context.move_to(10*indent, y)
-            context.text_path(name)
+        for item in self.items:
+            context.move_to(10*item.indent, y)
+            context.text_path(item.name)
             context.fill()
             y += font_height*scale
+
+class TreeItem:
+
+    def __init__(self, indent, name):
+        self.indent = indent
+        self.name = name
+        self.weight = 1
 
 class Directory:
 
