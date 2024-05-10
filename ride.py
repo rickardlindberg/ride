@@ -55,13 +55,13 @@ class TreeView:
         _, _, _, font_height, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
         scale = min(1, height/(len(self.items)*font_height))
-        context.scale(scale, scale)
+        context.set_font_size(17*scale)
         y = 10
         for indent, name in self.items:
-            context.move_to(10*indent*1/scale, y)
+            context.move_to(10*indent, y)
             context.text_path(name)
             context.fill()
-            y += font_height
+            y += font_height*scale
 
 class Directory:
 
