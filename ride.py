@@ -1,5 +1,7 @@
 import os
 
+import cairo
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib
@@ -12,11 +14,16 @@ class TreeView:
     ...     ".": ["folder1", "file2"],
     ...     "./folder1": ["file11"],
     ... }).populate_tree_view(tree_view)
+
     >>> tree_view.render()
     .
     -- folder1
     ---- file11
     -- file2
+
+    >>> surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+    >>> context = cairo.Context(surface)
+    >>> tree_view.paint(context)
     """
 
     def __init__(self):
@@ -42,6 +49,17 @@ class TreeView:
                 print(f"{'--'*indent} {name}")
             else:
                 print(name)
+
+    def paint(self, context):
+        extents = context.font_extents()
+        context.set_source_rgb(1, 0, 0)
+        context.set_font_size(17)
+        y = 10
+        for indent, name in self.items:
+            context.move_to(10*indent, y)
+            context.text_path(name)
+            context.fill()
+            y += extents[3] + 2
 
 class Directory:
 
@@ -126,9 +144,9 @@ class Canvas(Gtk.DrawingArea):
         self.connect("motion-notify-event", self.on_motion_notify_event)
 
     def on_draw(self, widget, context):
-        context.set_source_rgb(1, 0, 0)
-        context.rectangle(10, 10, 10, 10)
-        context.fill()
+        view = TreeView()
+        Directory.create().populate_tree_view(view)
+        view.paint(context)
 
     def on_motion_notify_event(self, widget, event):
         print(event)
