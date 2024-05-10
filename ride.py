@@ -23,7 +23,7 @@ class TreeView:
 
     >>> surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
     >>> context = cairo.Context(surface)
-    >>> tree_view.paint(context, 10, 10)
+    >>> tree_view.paint(context, 10, 10, 0, 0)
     """
 
     def __init__(self):
@@ -50,7 +50,7 @@ class TreeView:
             else:
                 print(name)
 
-    def paint(self, context, width, height):
+    def paint(self, context, width, height, x, y):
         context.set_font_size(17)
         _, _, _, font_height, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
@@ -144,6 +144,8 @@ class Canvas(Gtk.DrawingArea):
         )
         self.connect("draw", self.on_draw)
         self.connect("motion-notify-event", self.on_motion_notify_event)
+        self.x = 0
+        self.y = 0
 
     def on_draw(self, widget, context):
         view = TreeView()
@@ -151,11 +153,17 @@ class Canvas(Gtk.DrawingArea):
         view.paint(
             context,
             widget.get_allocated_width(),
-            widget.get_allocated_height()
+            widget.get_allocated_height(),
+            self.x,
+            self.y
         )
 
     def on_motion_notify_event(self, widget, event):
-        print(event)
+        self.x, self.y = self.translate_coordinates(
+            self,
+            event.x,
+            event.y
+        )
 
 if __name__ == "__main__":
     window = Gtk.Window()
