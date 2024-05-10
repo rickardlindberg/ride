@@ -29,5 +29,7 @@ if __name__ == "__main__":
         ensure(["bash", "-c", "if git status | grep -A 5 'Untracked files:'; then exit 1; fi"])
         ensure([sys.executable, "make.py", "build"])
         ensure(["git", "commit", "-a", "--verbose"]+command[1:])
+    elif command[0:1] == ["rundev"]:
+        ensure([sys.executable, "ride.py"]+command[1:])
     else:
         sys.exit("Unknown command.")
