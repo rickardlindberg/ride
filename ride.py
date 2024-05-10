@@ -1,4 +1,5 @@
 import os
+import sys
 
 import cairo
 
@@ -143,8 +144,9 @@ class File:
 
 class Canvas(Gtk.DrawingArea):
 
-    def __init__(self):
+    def __init__(self, directory):
         Gtk.DrawingArea.__init__(self)
+        self.directory = directory
         self.add_events(
             self.get_events() |
             Gdk.EventMask.POINTER_MOTION_MASK
@@ -156,7 +158,7 @@ class Canvas(Gtk.DrawingArea):
 
     def on_draw(self, widget, context):
         view = TreeView()
-        Directory.create().populate_tree_view(view)
+        self.directory.populate_tree_view(view)
         view.paint(
             context,
             widget.get_allocated_width(),
@@ -176,7 +178,9 @@ if __name__ == "__main__":
     window = Gtk.Window()
     window.connect("destroy", Gtk.main_quit)
     box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-    box.pack_start(Canvas(), True, True, 0)
+    box.pack_start(Canvas(Directory.create(
+        path=(sys.argv[1:]+["."])[0]
+    )), True, True, 0)
     window.add(box)
     window.show_all()
     Gtk.main()
