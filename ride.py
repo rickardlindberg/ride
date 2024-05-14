@@ -11,20 +11,13 @@ class TreeView:
 
     """
     >>> tree_view = TreeView()
-    >>> Directory.create_null(paths={
-    ...     ".": ["folder1", "file2"],
-    ...     "./folder1": ["file11"],
-    ... }).populate_tree_view(tree_view)
-
-    >>> tree_view.render()
-    .
-    -- folder1
-    ---- file11
-    -- file2
-
-    >>> surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 10, 10)
+    >>> Directory.create_test_instance(size=3).populate_tree_view(tree_view)
+    >>> w, h = 300, 400
+    >>> x, y = 50, 50
+    >>> surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
     >>> context = cairo.Context(surface)
-    >>> tree_view.paint(context, 10, 10, 0, 0)
+    >>> tree_view.paint(context, w, h, x, y, debug=True)
+    >>> surface.write_to_png("tree_view_3.png")
     """
 
     def __init__(self):
@@ -44,19 +37,20 @@ class TreeView:
     def add(self, name):
         self.items.append(TreeItem(self.indent, name))
 
-    def render(self):
-        for item in self.items:
-            if item.indent > 0:
-                print(f"{'--'*item.indent} {item.name}")
-            else:
-                print(item.name)
-
     def paint(self, context, width, height, x, y, debug=False):
-        context.set_font_size(17)
+        font_size = 20
+        context.set_source_rgb(1, 1, 1)
+        context.paint()
+        if debug:
+            size = 8
+            context.rectangle(x-size, y-size, size*2, size*2)
+            context.set_source_rgb(0.2, 0.2, 1)
+            context.fill()
+        context.set_font_size(font_size)
         ascent, descent, font_height, _, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
         scale = min(1, height/sum(item.weight*font_height for item in self.items))
-        context.set_font_size(17*scale)
+        context.set_font_size(font_size*scale)
         y = 0
         for item in self.items:
             if debug:
@@ -115,6 +109,20 @@ class Directory:
     >>> isinstance(Directory.create().children(), list)
     True
     """
+
+    @classmethod
+    def create_test_instance(cls, size=3):
+        def make_tree(path, size):
+            paths[path] = []
+            for x in range(size):
+                name = f"folder {x+1}"
+                make_tree(os.path.join(path, name), size-1)
+                paths[path].append(name)
+            for x in range(size):
+                paths[path].append(f"file {x+1}")
+        paths = {}
+        make_tree(".", size)
+        return cls.create_null(paths=paths)
 
     @classmethod
     def create(cls, path="."):
