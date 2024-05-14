@@ -35,7 +35,14 @@ class TreeView:
     def end_tree(self, directory):
         self.indent -= 1
 
-    def add(self, name, weight=1):
+    def add(self, name, weight=None):
+        if weight is None:
+            if self.indent in [0, 1]:
+                weight = 2
+            elif self.indent in [2]:
+                weight = 1.2
+            else:
+                weight = 1
         self.items.append(TreeItem(self.indent, name, weight))
 
     def paint(self, context, width, height, x, mouse_y, debug=False):
@@ -84,7 +91,7 @@ class TreeView:
         >>> tree_view.add("two")
 
         >>> tree_view.scale(item_size=10, container_size=20)
-        [1, 1]
+        [1.0, 1.0]
 
         >>> tree_view.scale(item_size=10, container_size=10)
         [0.5, 0.5]
