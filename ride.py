@@ -252,6 +252,7 @@ class Canvas(Gtk.DrawingArea):
             event.x,
             event.y
         )
+        self.queue_draw()
 
 def normal_distribution(x, center=100, deviation=10):
     """
