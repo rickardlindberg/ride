@@ -50,7 +50,12 @@ class TreeView:
         context.set_font_size(font_size)
         ascent, descent, font_height, _, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
-        self.scale(item_size=font_height, container_size=height)
+        distribution = NormalDistribution(center=mouse_y, deviation=font_size*1.2)
+        self.scale(
+            item_size=font_height,
+            container_size=height,
+            distribution=distribution,
+        )
         y = 0
         for item in self.items:
             y += item.paint(
@@ -64,13 +69,13 @@ class TreeView:
         if debug:
             for point in range(0, height, 1):
                 context.line_to(
-                    normal_distribution(point, center=mouse_y)*1000,
+                    distribution.at(point)*3000,
                     point
                 )
             context.set_source_rgb(0.2, 1, 0.2)
             context.stroke()
 
-    def scale(self, item_size, container_size):
+    def scale(self, item_size, container_size, distribution=None):
         """
         Even:
 
@@ -254,19 +259,30 @@ class Canvas(Gtk.DrawingArea):
         )
         self.queue_draw()
 
-def normal_distribution(x, center=100, deviation=10):
-    """
-    >>> round(normal_distribution(x=0, center=0, deviation=1), 2)
-    0.4
+class NormalDistribution:
 
-    >>> round(normal_distribution(x=2, center=0, deviation=1), 2)
-    0.05
-    """
-    return (
-        1 / math.sqrt(2*math.pi*deviation**2)
-    ) * math.e ** (
-        -0.5*((x-center)/deviation)**2
-    )
+    def __init__(self, center, deviation):
+        self.center = center
+        self.deviation = deviation
+
+    def max(self):
+        return self.at(self.center)
+
+    def at(self, x):
+        """
+        >>> x = NormalDistribution(center=0, deviation=1)
+
+        >>> round(x.at(0), 2)
+        0.4
+
+        >>> round(x.at(2), 2)
+        0.05
+        """
+        return (
+            1 / math.sqrt(2*math.pi*self.deviation**2)
+        ) * math.e ** (
+            -0.5*((x-self.center)/self.deviation)**2
+        )
 
 if __name__ == "__main__":
     window = Gtk.Window()
