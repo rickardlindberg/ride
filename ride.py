@@ -72,12 +72,34 @@ class TreeView:
             context.fill()
             y += font_height*scale
 
+    def scales(self, size, height):
+        """
+        >>> tree_view = TreeView()
+        >>> tree_view.add("one")
+        >>> tree_view.add("two")
+
+        >>> tree_view.scales(size=10, height=20)
+        [1, 1]
+
+        >>> tree_view.scales(size=10, height=10)
+        [0.5, 0.5]
+        """
+        total_height = 0
+        for item in self.items:
+            total_height += size
+        if total_height > height:
+            scale = height / total_height
+        else:
+            scale = 1
+        return [scale for item in self.items]
+
 class TreeItem:
 
     def __init__(self, indent, name):
         self.indent = indent
         self.name = name
         self.weight = 1
+        self.scale = 1
 
 class Directory:
 
