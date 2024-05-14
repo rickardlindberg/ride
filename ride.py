@@ -34,8 +34,8 @@ class TreeView:
     def end_tree(self, directory):
         self.indent -= 1
 
-    def add(self, name):
-        self.items.append(TreeItem(self.indent, name))
+    def add(self, name, weight=1):
+        self.items.append(TreeItem(self.indent, name, weight))
 
     def paint(self, context, width, height, x, y, debug=False):
         font_size = 20
@@ -49,51 +49,82 @@ class TreeView:
         context.set_font_size(font_size)
         ascent, descent, font_height, _, _ = context.font_extents()
         context.set_source_rgb(1, 0, 0)
-        scale = min(1, height/sum(item.weight*font_height for item in self.items))
-        context.set_font_size(font_size*scale)
+        self.scale(item_size=font_height, container_size=height)
         y = 0
         for item in self.items:
-            if debug:
-                context.rectangle(
-                    10*item.indent,
-                    y,
-                    300,
-                    font_height*scale
-                )
-                context.stroke()
-            context.move_to(10*item.indent, y+ascent*scale)
-            context.text_path(item.name)
-            context.fill()
-            y += font_height*scale
+            y += item.paint(
+                context=context,
+                font_size=font_size,
+                font_height=font_height,
+                y=y,
+                ascent=ascent,
+                debug=debug
+            )
 
-    def scales(self, size, height):
+    def scale(self, item_size, container_size):
         """
+        Even:
+
         >>> tree_view = TreeView()
         >>> tree_view.add("one")
         >>> tree_view.add("two")
 
-        >>> tree_view.scales(size=10, height=20)
+        >>> tree_view.scale(item_size=10, container_size=20)
         [1, 1]
 
-        >>> tree_view.scales(size=10, height=10)
+        >>> tree_view.scale(item_size=10, container_size=10)
         [0.5, 0.5]
+
+        Uneven:
+
+        >>> tree_view = TreeView()
+        >>> tree_view.add("one", 1)
+        >>> tree_view.add("two", 2)
+
+        >>> tree_view.scale(item_size=10, container_size=30)
+        [1, 2]
+
+        >>> tree_view.scale(item_size=10, container_size=15)
+        [0.5, 1.0]
         """
-        total_height = 0
+        sum_item_sizes = 0
         for item in self.items:
-            total_height += size
-        if total_height > height:
-            scale = height / total_height
+            sum_item_sizes += item.calculate_size(item_size)
+        if sum_item_sizes > container_size:
+            scale = container_size / sum_item_sizes
         else:
             scale = 1
-        return [scale for item in self.items]
+        for item in self.items:
+            item.apply_scale(scale)
+        return [item.scale for item in self.items]
 
 class TreeItem:
 
-    def __init__(self, indent, name):
+    def __init__(self, indent, name, weight):
         self.indent = indent
         self.name = name
-        self.weight = 1
-        self.scale = 1
+        self.weight = weight
+
+    def calculate_size(self, item_size):
+        return item_size * self.weight
+
+    def apply_scale(self, scale):
+        self.scale = scale * self.weight
+
+    def paint(self, context, font_size, y, ascent, debug, font_height):
+        context.set_font_size(font_size*self.scale)
+        if debug:
+            context.rectangle(
+                10*self.indent,
+                y,
+                300,
+                font_height*self.scale
+            )
+            context.stroke()
+        context.move_to(10*self.indent, y+ascent*self.scale)
+        context.text_path(self.name)
+        context.fill()
+        return font_height*self.scale
 
 class Directory:
 
