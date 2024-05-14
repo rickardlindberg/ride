@@ -6,6 +6,27 @@ import subprocess
 import sys
 import unittest
 
+def main():
+    command = sys.argv[1:]
+    if command == ["build"]:
+        ensure(["ctags", "--python-kinds=-i", "-R", "."])
+        run_tests()
+    elif command[0:1] == ["commit"]:
+        ensure(["bash", "-c", "if git status | grep -A 5 'Untracked files:'; then exit 1; fi"])
+        ensure([sys.executable, "make.py", "build"])
+        ensure(["git", "commit", "-a", "--verbose"]+command[1:])
+    elif command[0:1] == ["integrate"]:
+        ensure(
+            ["bash", "-c", 'test "$(git status --porcelain)" = ""'],
+            "git status is not empty"
+        )
+        run_tests()
+        ensure(["git", "push"])
+    elif command[0:1] == ["rundev"]:
+        ensure([sys.executable, "ride.py"]+command[1:])
+    else:
+        sys.exit("Unknown command.")
+
 def ensure(command, message=None):
     process = subprocess.run(command)
     if process.returncode != 0:
@@ -26,22 +47,4 @@ def run_tests():
         sys.exit(1)
 
 if __name__ == "__main__":
-    command = sys.argv[1:]
-    if command == ["build"]:
-        ensure(["ctags", "--python-kinds=-i", "-R", "."])
-        run_tests()
-    elif command[0:1] == ["commit"]:
-        ensure(["bash", "-c", "if git status | grep -A 5 'Untracked files:'; then exit 1; fi"])
-        ensure([sys.executable, "make.py", "build"])
-        ensure(["git", "commit", "-a", "--verbose"]+command[1:])
-    elif command[0:1] == ["integrate"]:
-        ensure(
-            ["bash", "-c", 'test "$(git status --porcelain)" = ""'],
-            "git status is not empty"
-        )
-        run_tests()
-        ensure(["git", "push"])
-    elif command[0:1] == ["rundev"]:
-        ensure([sys.executable, "ride.py"]+command[1:])
-    else:
-        sys.exit("Unknown command.")
+    main()
