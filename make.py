@@ -14,7 +14,7 @@ def main():
     elif command[0:1] == ["commit"]:
         ensure(["bash", "-c", "if git status | grep -A 5 'Untracked files:'; then exit 1; fi"])
         ensure([sys.executable, "make.py", "build"])
-        ensure(["git", "commit", "-a", "--verbose"]+command[1:])
+        ensure(["git", "commit", "--verbose"]+command[1:])
     elif command[0:1] == ["integrate"]:
         ensure(
             ["bash", "-c", 'test "$(git status --porcelain)" = ""'],
