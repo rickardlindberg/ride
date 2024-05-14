@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 
@@ -37,13 +38,13 @@ class TreeView:
     def add(self, name, weight=1):
         self.items.append(TreeItem(self.indent, name, weight))
 
-    def paint(self, context, width, height, x, y, debug=False):
+    def paint(self, context, width, height, x, mouse_y, debug=False):
         font_size = 20
         context.set_source_rgb(1, 1, 1)
         context.paint()
         if debug:
             size = 8
-            context.rectangle(x-size, y-size, size*2, size*2)
+            context.rectangle(x-size, mouse_y-size, size*2, size*2)
             context.set_source_rgb(0.2, 0.2, 1)
             context.fill()
         context.set_font_size(font_size)
@@ -60,6 +61,14 @@ class TreeView:
                 ascent=ascent,
                 debug=debug
             )
+        if debug:
+            for point in range(0, height, 1):
+                context.line_to(
+                    normal_distribution(point, center=mouse_y)*1000,
+                    point
+                )
+            context.set_source_rgb(0.2, 1, 0.2)
+            context.stroke()
 
     def scale(self, item_size, container_size):
         """
@@ -243,6 +252,20 @@ class Canvas(Gtk.DrawingArea):
             event.x,
             event.y
         )
+
+def normal_distribution(x, center=100, deviation=10):
+    """
+    >>> round(normal_distribution(x=0, center=0, deviation=1), 2)
+    0.4
+
+    >>> round(normal_distribution(x=2, center=0, deviation=1), 2)
+    0.05
+    """
+    return (
+        1 / math.sqrt(2*math.pi*deviation**2)
+    ) * math.e ** (
+        -0.5*((x-center)/deviation)**2
+    )
 
 if __name__ == "__main__":
     window = Gtk.Window()
