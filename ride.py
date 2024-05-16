@@ -132,11 +132,12 @@ class TreeView:
                 else:
                     rest.append(item)
                 y += scaled_size
-            total_weight = 0
-            for item in rest:
-                total_weight += item.weight
-            for item in rest:
-                item.shave_off_per_weight(unit_size, rest_size/total_weight)
+            if rest:
+                total_weight = 0
+                for item in rest:
+                    total_weight += item.weight
+                for item in rest:
+                    item.shave_off_per_weight(unit_size, rest_size/total_weight)
         return [item.scale for item in self.items]
 
 class TreeItem:
