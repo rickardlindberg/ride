@@ -149,9 +149,6 @@ class TreeItem:
         self.weight = weight
         self.scale = 1
 
-    def remove_height(self, height):
-        pass
-
     def calculate_size(self, unit_size):
         return self.scale * unit_size * self.weight
 
