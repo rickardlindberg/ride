@@ -110,6 +110,7 @@ class TreeView:
         """
         sum_item_sizes = 0
         for item in self.items:
+            item.scale = 1
             sum_item_sizes += item.calculate_size(item_size)
         if sum_item_sizes > container_size:
             scale = container_size / sum_item_sizes
@@ -119,6 +120,25 @@ class TreeView:
             item.apply_scale(scale)
         if distribution:
             distribution.set_max_factor(scale)
+            rest = []
+            rest_size = 0
+            y = 0
+            for item in self.items:
+                scaled_size = item.calculate_size(item_size)
+                enlarge_factor = distribution.at(y+scaled_size/2)
+                if enlarge_factor > 1.5:
+                    item.apply_scale(scale*enlarge_factor)
+                    rest_size += item.calculate_size(item_size) - scaled_size
+                else:
+                    rest.append(item)
+                y += scaled_size
+            total_weight = 0
+            for item in rest:
+                total_weight += item.weight
+            for item in rest:
+                scaled_size = item.calculate_size(item_size)
+                this_rest = item.weight*(rest_size/total_weight)
+                item.scale *= (scaled_size-this_rest)/scaled_size
         return [item.scale for item in self.items]
 
 class TreeItem:
@@ -127,9 +147,13 @@ class TreeItem:
         self.indent = indent
         self.name = name
         self.weight = weight
+        self.scale = 1
+
+    def remove_height(self, height):
+        pass
 
     def calculate_size(self, item_size):
-        return item_size * self.weight
+        return self.scale * item_size * self.weight
 
     def apply_scale(self, scale):
         self.scale = scale * self.weight
