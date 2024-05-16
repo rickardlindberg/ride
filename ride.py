@@ -76,7 +76,7 @@ class TreeView:
         if debug:
             for point in range(0, height, 1):
                 context.line_to(
-                    distribution.at(point)*3000,
+                    distribution.at(point)*100,
                     point
                 )
             context.set_source_rgb(0.2, 1, 0.2)
@@ -117,6 +117,8 @@ class TreeView:
             scale = 1
         for item in self.items:
             item.apply_scale(scale)
+        if distribution:
+            distribution.set_max_factor(scale)
         return [item.scale for item in self.items]
 
 class TreeItem:
@@ -271,8 +273,22 @@ class NormalDistribution:
     def __init__(self, center, deviation):
         self.center = center
         self.deviation = deviation
+        self.factor = 1
+
+    def set_max_factor(self, x):
+        self.factor = 1 / (x * self.max())
 
     def max(self):
+        """
+        >>> x = NormalDistribution(center=0, deviation=1)
+
+        >>> round(x.max(), 2)
+        0.4
+
+        >>> x.set_max_factor(0.5)
+        >>> round(x.max(), 2)
+        2.0
+        """
         return self.at(self.center)
 
     def at(self, x):
@@ -285,7 +301,7 @@ class NormalDistribution:
         >>> round(x.at(2), 2)
         0.05
         """
-        return (
+        return self.factor * (
             1 / math.sqrt(2*math.pi*self.deviation**2)
         ) * math.e ** (
             -0.5*((x-self.center)/self.deviation)**2
