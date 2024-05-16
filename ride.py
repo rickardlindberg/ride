@@ -136,9 +136,7 @@ class TreeView:
             for item in rest:
                 total_weight += item.weight
             for item in rest:
-                scaled_size = item.calculate_size(unit_size)
-                this_rest = item.weight*(rest_size/total_weight)
-                item.scale *= (scaled_size-this_rest)/scaled_size
+                item.shave_off_per_weight(unit_size, rest_size/total_weight)
         return [item.scale for item in self.items]
 
 class TreeItem:
@@ -148,6 +146,9 @@ class TreeItem:
         self.name = name
         self.weight = weight
         self.scale = 1
+
+    def shave_off_per_weight(self, unit_size, off_per_weight):
+        self.scale = self.scale - off_per_weight / unit_size
 
     def calculate_size(self, unit_size):
         return self.scale * unit_size * self.weight
